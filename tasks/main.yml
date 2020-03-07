@@ -1,0 +1,41 @@
+---
+- name: Install dependencies
+  portage:
+    package: "{{ item }}"
+    update: yes
+  with_items:
+    - app-arch/unzip
+  when:
+    - ansible_distribution == "Gentoo"
+- name: Install dependencies
+  apt:
+    pkg:
+      - unzip
+  when:
+    - ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Stat 1Password CLI
+  stat:
+    path: "{{ onepassword_cli_install_directory }}/op"
+  register: onepassword_cli_command
+- name: Install 1Password CLI
+  when: onepassword_cli_command.stat.executable is not defined
+  block:
+    - name: Create temporary directory for 1Password CLI
+      tempfile:
+        state: directory
+      register: temporary_directory_for_onepassword_cli
+      changed_when: false
+    - name: Download and extract 1Password CLI for Linux
+      when: ansible_system == "Linux" and ansible_architecture == "x86_64"
+      unarchive:
+        src: "https://cache.agilebits.com/dist/1P/op/pkg/v{{ onepassword_cli.version }}/op_linux_amd64_v{{ onepassword_cli.version }}.zip"
+        dest: "{{ temporary_directory_for_onepassword_cli.path }}"
+        remote_src: true
+    - name: Install 1Password CLI for Linux
+      when: ansible_system == "Linux" and ansible_architecture == "x86_64"
+      copy:
+        remote_src: true
+        src: "{{ temporary_directory_for_onepassword_cli.path }}/op"
+        dest: "{{ onepassword_cli_install_directory }}/"
+        mode: a+rx
