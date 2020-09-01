@@ -5,14 +5,12 @@
     update: yes
   with_items:
     - app-arch/unzip
-  when:
-    - ansible_distribution == "Gentoo"
+  when: ansible_os_family == "Gentoo"
 - name: Install dependencies
   apt:
     pkg:
       - unzip
-  when:
-    - ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
+  when: ansible_os_family == 'Debian'
 
 - name: Stat 1Password CLI
   stat:
@@ -24,6 +22,7 @@
     - name: Create temporary directory for 1Password CLI
       tempfile:
         state: directory
+      mode: 0644
       register: temporary_directory_for_onepassword_cli
       changed_when: false
     - name: Download and extract 1Password CLI for Linux
@@ -32,10 +31,11 @@
         src: "https://cache.agilebits.com/dist/1P/op/pkg/v{{ onepassword_cli.version }}/op_linux_amd64_v{{ onepassword_cli.version }}.zip"
         dest: "{{ temporary_directory_for_onepassword_cli.path }}"
         remote_src: true
+        mode: 0644
     - name: Install 1Password CLI for Linux
       when: ansible_system == "Linux" and ansible_architecture == "x86_64"
       copy:
         remote_src: true
         src: "{{ temporary_directory_for_onepassword_cli.path }}/op"
         dest: "{{ onepassword_cli_install_directory }}/"
-        mode: a+rx
+        mode: 0755

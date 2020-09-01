@@ -1,6 +1,6 @@
 galaxy_info:
-  role_name: 1password-cli
-  author: Hidenori MATSUKI
+  role_name: onepassword_cli
+  author: Hidenori Matsuki
   description: Install 1Password CLI
   issue_tracker_url: https://github.com/mazgi/ansible-galaxy.1password-cli/issues
   license: BSD-3-Clause
@@ -10,23 +10,21 @@ galaxy_info:
   # If this a Container Enabled role, provide the minimum Ansible Container version.
   # min_ansible_container_version:
 
-  #
-  # Provide a list of supported platforms, and for each platform a list of versions.
-  # If you don't wish to enumerate all versions for a particular platform, use 'all'.
-  # To view available platforms and versions (or releases), visit:
-  # https://galaxy.ansible.com/api/v1/platforms/
-  #
-  # platforms:
-  # - name: Fedora
-  #   versions:
-  #   - all
-  #   - 25
-  # - name: SomePlatform
-  #   versions:
-  #   - all
-  #   - 1.0
-  #   - 7
-  #   - 99.99
+  platforms:
+    # https://galaxy.ansible.com/api/v1/platforms/?name__icontains=Debian
+    - name: Debian
+      versions:
+        - buster # 10
+        - stretch # 9
+    # https://galaxy.ansible.com/api/v1/platforms/?name__icontains=Gentoo
+    - name: Gentoo
+      versions:
+        - all
+    # https://galaxy.ansible.com/api/v1/platforms/?name__icontains=Ubuntu
+    - name: Ubuntu
+      versions:
+        - focal # 20.04
+        - bionic # 18.04
 
   galaxy_tags:
     []
