@@ -22,7 +22,6 @@
     - name: Create temporary directory for 1Password CLI
       tempfile:
         state: directory
-      mode: 0644
       register: temporary_directory_for_onepassword_cli
       changed_when: false
     - name: Download and extract 1Password CLI for Linux
