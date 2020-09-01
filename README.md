@@ -1,5 +1,7 @@
 # 1password-cli
 
+![default](https://github.com/mazgi/ansible-galaxy.1password-cli/workflows/default/badge.svg)
+
 Install [1Password CLI](https://app-updates.agilebits.com/product_history/CLI).
 
 ## Requirements
