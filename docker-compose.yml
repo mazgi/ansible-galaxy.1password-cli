@@ -1,29 +1,72 @@
-version: "3.7"
+x-service-stub-base: &service-stub-base
+  build:
+    args: &service-stub-base-build-args
+      UID: ${UID:-0}
+      GID: ${GID:-0}
+  command:
+    - bash
+    - -lc
+    - |
+      sudo chown $$(id -u):$$(id -g) $${HOME}/.ssh/
+      cat $${HOME}/.ssh/id_rsa.pub > $${HOME}/.ssh/authorized_keys
+      /workspace/scripts/sleep.sh
+  user: "${UID:-0}:${GID:-0}"
+  volumes: &service-stub-base-volumes
+    - ${HOME}/.ssh/id_rsa:/root/.ssh/id_rsa:ro # for macOS
+    - ${HOME}/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub:ro # for macOS
+    - ${HOME}/.ssh/id_rsa:/home/developer/.ssh/id_rsa:ro
+    - ${HOME}/.ssh/id_rsa.pub:/home/developer/.ssh/id_rsa.pub:ro
+    - ./_drivers/scripts:/workspace/scripts
+  working_dir: /workspace
+
 services:
-  provisioner:
-    build: Dockerfile.d/provisioner
-    working_dir: /workspace
-    volumes:
-      - provisioner-tmp:/tmp/provisioning
-      - provisioner-dotansible:/root/.ansible # for macOS
-      - provisioner-dotansible:/developer/.ansible
-      - provisioner-dotconfig:/root/.config # for macOS
-      - provisioner-dotconfig:/developer/.config
-      - /root/.ssh
-      - ${HOME}/.ssh/id_rsa:/root/.ssh/id_rsa:ro
-      - .:/workspace
-    environment:
-      - TF_DATA_DIR=/tmp/provisioner
+  provisioning:
+    build:
+      context: Dockerfile.d/provisioning
+      args:
+        GID: ${GID:-0}
+        UID: ${UID:-0}
     command:
-      - bash
-      - -c
+      - zsh
+      - -ic
       - |
-        ansible-lint tests/test.yml
-        ansible-playbook -i localhost, -c local -u $$(id -un) tests/test.yml
+        ansible --module-name ping all
+        /workspace/scripts/$${CURRENT_ENV_NAME}/run.sh
+    environment:
+      ANSIBLE_CONFIG: /workspace/config/${CURRENT_ENV_NAME}/ansible.cfg
+      CURRENT_ENV_NAME:
+    user: "${UID:-0}:${GID:-0}"
+    volumes:
+      - provisioning-home-root:/root # for macOS
+      - provisioning-home-developer:/home/developer
+      - ${HOME}/.ssh:/root/.ssh:ro # for macOS
+      - ${HOME}/.ssh:/home/developer/.ssh:ro
+      - .:/workspace/project
+      - ./_drivers/config:/workspace/config
+      - ./_drivers/provisioning:/workspace/provisioning
+      - ./_drivers/scripts:/workspace/scripts
+    working_dir: /workspace/provisioning
+  stub-debian-10:
+    <<: *service-stub-base
+    build:
+      args:
+        <<: *service-stub-base-build-args
+      context: Dockerfile.d/stub-debian-10
+  stub-gentoo:
+    <<: *service-stub-base
+    build:
+      args:
+        <<: *service-stub-base-build-args
+      context: Dockerfile.d/stub-gentoo
+  stub-ubuntu-20:
+    <<: *service-stub-base
+    build:
+      args:
+        <<: *service-stub-base-build-args
+      context: Dockerfile.d/stub-ubuntu-20
+version: "3.8"
 volumes:
-  provisioner-dotansible:
+  provisioning-home-root:
     driver: local
-  provisioner-dotconfig:
-    driver: local
-  provisioner-tmp:
+  provisioning-home-developer:
     driver: local
