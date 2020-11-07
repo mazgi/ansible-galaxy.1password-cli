@@ -1,15 +1,24 @@
 name: default
-on: [push]
+
+on:
+  push:
 
 jobs:
-  setup:
-    strategy:
-      matrix:
-        os: [macos-10.15, ubuntu-20.04]
-    runs-on: ${{ matrix.os }}
+  provisioning:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - run: pip3 install ansible ansible-lint
-      - run: ansible-lint tests/test.yml
-      - run: ansible-playbook -i localhost, -c local -u $(id -un) tests/test.yml
+      - run: |
+          cat<<EOE > .env
+          CURRENT_ENV_NAME=test
+          EOE
+      - run: |
+          echo "UID=$(id -u)" >> .env
+          echo "GID=$(id -g)" >> .env
+      - name: set up ssh credentials for testing
+        run: |
+          mkdir -p ${HOME}/.ssh/
+          ssh-keygen -C '' -f ${HOME}/.ssh/id_rsa -N '' -q
+      - run: docker-compose build
+      - run: docker-compose up
+      - run: docker-compose down -v
